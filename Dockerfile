@@ -19,7 +19,9 @@ RUN go mod download
 
 COPY . .
 
-# FROM baseline AS testing
+FROM baseline AS testing
+
+RUN go test -v -count=1 ./...
 
 FROM baseline AS build
 
@@ -31,11 +33,11 @@ RUN go build \
 FROM alpine:${ALPINE_VERSION} AS runtime
 WORKDIR /opt
 
+ENV DATABASE_URL="./rehearsal.db"
 
 COPY --from=build /usr/local/bin/rmx ./a
 
 # run migrations
-# note - use an env variable somehow
-RUN ./a migrate --dsn ./rehearsal.db
+RUN ./a migrate --dsn ${DATABASE_URL}
 
-CMD ["./a", "serve", "--dsn" , "./rehearsal.db"]
+CMD ./a serve --dsn ${DATABASE_URL}
