@@ -3,10 +3,25 @@ version: '3'
 tasks:
   default:
     desc: list tasks
-    cmds:
-      - task --list-all
+    cmd: task --list-all
 
   test:
     desc: run golang testing
-    cmds:
-      - go test -v -count=1 ./...
+    cmd: go test -v -count=1 ./...
+
+  cache:
+    desc: cache dependencies
+    cmd: go mod tidy
+
+  stop:
+    desc: terminate application
+    cmd: docker-compose down --volumes
+
+  start:
+    desc: run application
+    deps: [stop,cache]
+    cmd: docker-compose up -d --build --force-recreate
+
+  logs:
+    desc: list logs
+    cmd: docker-compose logs -f
