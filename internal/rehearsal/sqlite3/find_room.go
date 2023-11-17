@@ -18,7 +18,7 @@ func FindRoom(ctx context.Context, db sql.DB, id xid.ID) (*rehearsal.Room, error
 		r rehearsal.Room
 	)
 
-	err := db.QueryRowContext(ctx, qry, id).Scan(
+	err := db.QueryRow(ctx, qry, id).Scan(
 		&r.ID, &r.Title, &r.Capacity, &r.Owner)
 	if err != nil {
 		return nil,  fmt.Errorf("find room: %w", err)

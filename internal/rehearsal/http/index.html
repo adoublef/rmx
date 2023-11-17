@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>rooms</title>
+    <style>
+        html {
+            color-scheme: dark light;
+            font-family: system-ui;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li>
+                    <a href="/">Home</a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section id="open-room">
+            <form action="/rooms" method="post">
+                <!-- <input type="hidden" name="_xsrf" value="xsrf"> -->
+                <label>
+                    <!-- span -->
+                    <input type="text" id="title" name="title" required>
+                </label>
+                <label>
+                    <!-- span -->
+                    <input type="number" name="capacity" id="capacity" min="1" max="8" required>
+                </label>
+                <button type="submit">Open</button>
+            </form>
+        </section>
+        <!-- list of available rooms to join -->
+        <section id="room-list">
+            <ul><!-- todo --></ul>
+        </section>
+    </main>
+    <footer>
+        <p><small>Powered by <a href="https://go.dev">Golang.</a></small></p>
+        <p><small>Source code available on <a href="https://github.com/rapidmidiex/rmx">GitHub</a>.</small></p>
+    </footer>
+</body>
+
+</html>

@@ -16,7 +16,7 @@ func ListRooms(ctx context.Context, db sql.DB, limit, offset int64) ([]*rehearsa
 		LIMIT ? OFFSET ?`
 	)
 
-	rs, err := db.QueryContext(ctx, qry, limit, offset)
+	rs, err := db.Query(ctx, qry, limit, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("list rooms: %w", err)
 	}
