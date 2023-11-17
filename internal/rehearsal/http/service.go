@@ -28,6 +28,7 @@ func New(fs *template.FS, db sql.DB) *Service {
 
 func (s Service) routes() {
 	s.m.Get("/", s.handleIndex())
+	s.m.Post("/", s.handleOpenRoom())
 }
 
 var (

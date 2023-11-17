@@ -10,7 +10,9 @@ import (
 
 func (s *Service) handleIndex() http.HandlerFunc {
 	type response struct {
-		Rooms []*rehearsal.Room
+		// note - map to a type with url
+		Rooms  []rehearsal.Room
+		Action string
 	}
 	var parseQueries = func(r *http.Request) (limit, offset int) {
 		var (
@@ -36,17 +38,16 @@ func (s *Service) handleIndex() http.HandlerFunc {
 		var (
 			ctx    = r.Context()
 			l, off = parseQueries(r)
+			action = "/rooms"
 		)
-		// check url queries for values
+
 		rr, _, err := sql.ListRooms(ctx, s.db, l, off)
 		if err != nil {
 			http.Error(w, "Cannot list rooms", http.StatusInternalServerError)
 			return
 		}
 
-		v := &response{Rooms: rr}
-
 		t, _ := s.fs.ParseFiles(pageIndex)
-		t.Execute(w, v)
+		t.Execute(w, response{Rooms: rr, Action: action})
 	}
 }
