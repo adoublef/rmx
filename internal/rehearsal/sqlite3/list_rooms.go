@@ -8,7 +8,7 @@ import (
 	sql "github.com/rapidmidiex/rmx/sqlite3"
 )
 
-func ListRooms(ctx context.Context, db sql.DB, limit, offset int64) ([]*rehearsal.Room, int, error) {
+func ListRooms(ctx context.Context, db sql.DB, limit, offset int) ([]*rehearsal.Room, int, error) {
 	var (
 		qry = `
 		SELECT r.id, r.title, r.capacity, r.owner
