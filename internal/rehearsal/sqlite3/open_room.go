@@ -12,7 +12,7 @@ import (
 //go:embed all:*.up.sql
 var FS embed.FS
 
-func OpenRoom(ctx context.Context, db sql.DB, r *rehearsal.Room) error {
+func OpenRoom(ctx context.Context, db sql.DB, r rehearsal.Room) error {
 	var (
 		qry = `
 		INSERT INTO rooms (id, title, capacity, owner)

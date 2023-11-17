@@ -30,7 +30,7 @@ func TestSqlite3(t *testing.T) {
 			room = rehearsal.Room{ID: xid.New(), Title: "The Bug Fixes", Capacity: 0, Owner: xid.New()}
 		)
 
-		err := sql.OpenRoom(ctx, db, &room)
+		err := sql.OpenRoom(ctx, db, room)
 		is.True(err != nil) // invalid room capacity
 	}))
 
