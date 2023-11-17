@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"io"
 	"io/fs"
 	"strings"
 
@@ -18,11 +19,23 @@ var args = strings.Join([]string{"_journal=wal", "_timeout=5000", "_synchronous=
 type DB interface {
 	Close() error
 	ExecContext(ctx context.Context, query string, args ...any) (rowsAffected int64, err error)
-	QueryRowContext(ctx context.Context, query string, args ...any) Row
+	QueryContext(ctx context.Context, query string, args ...any) (ScanIterator, error)
+	QueryRowContext(ctx context.Context, query string, args ...any) Scanner
 }
+
+var _ DB = (*Conn)(nil)
 
 type Conn struct {
 	rwc *sql.DB
+}
+
+// QueryContext implements DB.
+func (c *Conn) QueryContext(ctx context.Context, query string, args ...any) (ScanIterator, error) {
+	rs, err := c.rwc.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("query: %w", err)
+	}
+	return rs, nil
 }
 
 // ExecContext executes a query without returning any rows.
@@ -39,7 +52,7 @@ func (c *Conn) ExecContext(ctx context.Context, query string, args ...any) (int6
 }
 
 // QueryRowContext executes a query that is expected to return at most one row.
-func (c *Conn) QueryRowContext(ctx context.Context, query string, args ...any) Row {
+func (c *Conn) QueryRowContext(ctx context.Context, query string, args ...any) Scanner {
 	return c.rwc.QueryRowContext(ctx, query, args...)
 }
 
@@ -57,9 +70,15 @@ func Open(dsn string) (*Conn, error) {
 	return &Conn{db}, nil
 }
 
-type Row interface {
+type Scanner interface {
 	Err() error
 	Scan(dest ...any) error
+}
+
+type ScanIterator interface {
+	io.Closer
+	Scanner
+	Next() bool
 }
 
 type Result interface {
