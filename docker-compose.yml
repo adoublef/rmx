@@ -1,0 +1,14 @@
+version: '3.9'
+services:
+  vm:
+    container_name: vm
+    build:
+      context: .
+      target: runtime
+    privileged: true
+    ports: [8080:8080]
+    networks: ["rmx"]
+
+networks:
+  rmx:
+    name: rmx
