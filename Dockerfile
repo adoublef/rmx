@@ -3,7 +3,7 @@
 ARG GO_VERSION=1.21
 ARG ALPINE_VERSION=3.18
 
-FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS build
+FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS baseline
 WORKDIR /usr/src
 
 ARG EXE_NAME
@@ -18,6 +18,11 @@ COPY go.* .
 RUN go mod download
 
 COPY . .
+
+# FROM baseline AS testing
+
+FROM baseline AS build
+
 RUN go build \
     -ldflags "-s -w -extldflags '-static'" \
     -buildvcs=false \
