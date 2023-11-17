@@ -11,3 +11,5 @@ CREATE TABLE `rooms` (
     CONSTRAINT cap_bound_size CHECK (capacity > 0 AND capacity <= 8),
     PRIMARY KEY (id)
 );
+
+-- handle deletes by using tombstone 
