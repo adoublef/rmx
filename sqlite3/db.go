@@ -18,9 +18,9 @@ var args = strings.Join([]string{"_journal=wal", "_timeout=5000", "_synchronous=
 
 type DB interface {
 	Close() error
-	ExecContext(ctx context.Context, query string, args ...any) (rowsAffected int64, err error)
-	QueryContext(ctx context.Context, query string, args ...any) (ScanIterator, error)
-	QueryRowContext(ctx context.Context, query string, args ...any) Scanner
+	Exec(ctx context.Context, query string, args ...any) (rowsAffected int64, err error)
+	Query(ctx context.Context, query string, args ...any) (ScanIterator, error)
+	QueryRow(ctx context.Context, query string, args ...any) Scanner
 }
 
 var _ DB = (*Conn)(nil)
@@ -29,8 +29,8 @@ type Conn struct {
 	rwc *sql.DB
 }
 
-// QueryContext implements DB.
-func (c *Conn) QueryContext(ctx context.Context, query string, args ...any) (ScanIterator, error) {
+// Query implements DB.
+func (c *Conn) Query(ctx context.Context, query string, args ...any) (ScanIterator, error) {
 	rs, err := c.rwc.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("query: %w", err)
@@ -38,8 +38,8 @@ func (c *Conn) QueryContext(ctx context.Context, query string, args ...any) (Sca
 	return rs, nil
 }
 
-// ExecContext executes a query without returning any rows.
-func (c *Conn) ExecContext(ctx context.Context, query string, args ...any) (int64, error) {
+// Exec executes a query without returning any rows.
+func (c *Conn) Exec(ctx context.Context, query string, args ...any) (int64, error) {
 	rs, err := c.rwc.ExecContext(ctx, query, args...)
 	if err != nil {
 		return 0, fmt.Errorf("execute: %w", err)
@@ -51,8 +51,8 @@ func (c *Conn) ExecContext(ctx context.Context, query string, args ...any) (int6
 	return n, nil
 }
 
-// QueryRowContext executes a query that is expected to return at most one row.
-func (c *Conn) QueryRowContext(ctx context.Context, query string, args ...any) Scanner {
+// QueryRow executes a query that is expected to return at most one row.
+func (c *Conn) QueryRow(ctx context.Context, query string, args ...any) Scanner {
 	return c.rwc.QueryRowContext(ctx, query, args...)
 }
 
@@ -81,12 +81,11 @@ type ScanIterator interface {
 	Next() bool
 }
 
-type Result interface {
-	LastInsertId() (int64, error)
-	RowsAffected() (int64, error)
-}
-
 // Up from the current version.
 func Up(ctx context.Context, db *Conn, fsys fs.FS) error {
-	return migrate.Up(ctx, db.rwc, fsys)
+	err := migrate.Up(ctx, db.rwc, fsys)
+	if err != nil {
+		return fmt.Errorf("migrate up: %w", err)
+	}
+	return nil
 }
