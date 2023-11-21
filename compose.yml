@@ -1,0 +1,39 @@
+version: '3.9'
+services:
+  rmx:
+    container_name: rmx
+    depends_on:
+      - rmx-migrate
+    build:
+      context: .
+      target: runtime
+    command: serve -d file:/data/sqlite/a.db
+    volumes:
+      - rmx-sqlite:/data/sqlite
+    privileged: true
+    ports: 
+      - 8080:8080
+    restart: unless-stopped
+    networks: 
+      - rmx-network
+
+  rmx-migrate:
+    container_name: rmx-migrate
+    build:
+      context: .
+      target: runtime
+    command: migrate -d file:/data/sqlite/a.db
+    volumes:
+      - rmx-sqlite:/data/sqlite
+    privileged: true
+    restart: on-failure
+    networks: 
+      - rmx-network
+
+networks:
+  rmx-network:
+    name: rmx-network
+
+volumes:
+  rmx-sqlite:
+    name: rmx-sqlite
