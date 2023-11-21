@@ -28,6 +28,7 @@
 		</nav>
 	</header>
 	<main>
+        {{block "main" .}}
 		<section id="open-room">
 			<form action="{{.Action}}" method="post">
 				<!-- <input type="hidden" name="_xsrf" value="xsrf"> -->
@@ -45,15 +46,19 @@
 		<!-- list of available rooms to join -->
 		<section id="room-list">
 			<ul>
-				{{range $room, $i := .Rooms}}
+				{{range .Rooms}}
 				<li>
 					<article>
-						<code>not implemented</code>
+						<hgroup>
+                            <h2>{{.Title}}</h2>
+                        </hgroup>
+                        <a href="/rooms/{{.ID}}">Enter</a>
 					</article>
 				</li>
 				{{end}}
 			</ul>
 		</section>
+        {{end}}
 	</main>
 	<footer>
 		<p><small>Powered by <a href="https://go.dev">Golang.</a></small></p>

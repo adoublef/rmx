@@ -29,6 +29,7 @@ func New(fs *template.FS, db sql.DB) *Service {
 func (s Service) routes() {
 	s.m.Get("/", s.handleIndex())
 	s.m.Post("/", s.handleOpenRoom())
+	s.m.Get("/{id}", s.handleEnterRoom())
 }
 
 var (
@@ -36,4 +37,5 @@ var (
 	embedFS   embed.FS
 	FS        = template.NewFS(embedFS)
 	pageIndex = "index.html"
+	pageRoom  = "room.html"
 )
