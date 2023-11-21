@@ -33,11 +33,14 @@ RUN go build \
 FROM alpine:${ALPINE_VERSION} AS runtime
 WORKDIR /opt
 
-ENV DATABASE_URL="./rehearsal.db"
+RUN addgroup -S rmx; \
+    adduser -S rmx -G rmx -D  -h /home/rmx -s /bin/nologin; \
+    mkdir -p /data/sqlite && \
+    chown -R rmx:rmx /home/rmx /data/sqlite
 
 COPY --from=build /usr/local/bin/rmx ./a
 
-# run migrations
-RUN ./a migrate --dsn ${DATABASE_URL}
+USER rmx
 
-CMD ./a serve --dsn ${DATABASE_URL}
+ENTRYPOINT ["./a"]
+CMD ["serve"]
