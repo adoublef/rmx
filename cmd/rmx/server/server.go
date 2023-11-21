@@ -18,7 +18,8 @@ type Server struct {
 
 // ListenAndServe listens on the TCP network address and then handles requests on incoming connections.
 func (s *Server) ListenAndServe() error {
-	if err := s.s.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	err := s.s.ListenAndServe()
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return fmt.Errorf("http listen and serve: %w", err)
 	}
 	return nil
