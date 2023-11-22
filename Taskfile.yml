@@ -13,6 +13,10 @@ tasks:
     desc: cache dependencies
     cmd: go mod tidy
 
+  fmt:
+    desc: format code
+    cmd: go fmt ./...
+
   stop:
     desc: terminate application
     cmd: docker-compose down --volumes
