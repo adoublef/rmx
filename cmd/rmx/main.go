@@ -2,12 +2,13 @@ package main
 
 import (
 	"context"
+	"errors"
+	"flag"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/choria-io/fisk"
 	"github.com/rapidmidiex/rmx/cmd/rmx/server"
 	"github.com/rapidmidiex/rmx/errgroup"
 	room "github.com/rapidmidiex/rmx/internal/rehearsal/sqlite3"
@@ -15,36 +16,36 @@ import (
 )
 
 const (
-	appName     = "audio"
-	appHelp     = ""
-	serveName   = "serve"
-	serveHelp   = "Run application"
-	migrateName = "migrate"
-	migrateHelp = "Run database migrations"
-	addrName    = "addr"
-	addrHelp    = "HTTP Listen address"
-	dsnName     = "dsn"
-	dsnShort    = 'd'
-	dsnHelp     = "Datasource name"
+	E = flag.ExitOnError
+	S = "s"
+	M = "m"
 )
 
 func main() {
-	f := fisk.New(appName, appHelp)
+	if len(os.Args) < 2 {
+		log.Fatal("too few arguments")
+	}
+
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
+	defer cancel()
+
 	// serve
-	{
-		v := &serve{}
-		s := f.Command(serveName, serveHelp).Action(v.serve)
-		s.Flag(addrName, addrHelp).StringVar(&v.addr)
-		s.Flag(dsnName, dsnHelp).Short(dsnShort).StringVar(&v.dsn)
-	}
+	s := serve{fs: flag.NewFlagSet(S, E)}
+	s.fs.StringVar(&s.addr, "addr", ":8080", "listen address")
+	s.fs.StringVar(&s.dsn, "dsn", ":memory:", "datasource name")
 	// migrate
-	{
-		v := &migrate{}
-		m := f.Command(migrateName, migrateHelp).Action(v.migrate)
-		m.Flag(dsnName, dsnHelp).Short(dsnShort).StringVar(&v.dsn)
+	m := migrate{fs: flag.NewFlagSet(M, E)}
+	m.fs.StringVar(&m.dsn, "dsn", ":memory:", "datasource name")
+
+	var err error
+	switch sub, args := os.Args[1], os.Args[2:]; sub {
+	case S:
+		err = s.serve(ctx, args)
+	case M:
+		err = m.migrate(ctx, args)
+	default:
+		err = errors.New("unknown subcommand")
 	}
-	// parse flags
-	_, err := f.Parse(os.Args[1:])
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -52,30 +53,26 @@ func main() {
 
 // serve
 type serve struct {
+	fs   *flag.FlagSet
 	addr string
 	dsn  string
 }
 
-func (c *serve) serve(_ *fisk.ParseContext) error {
-	var (
-		ctx, cancel = signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
-		eg          = errgroup.New(ctx)
-	)
-	defer cancel()
+func (c *serve) serve(ctx context.Context, args []string) (err error) {
+	if err = c.fs.Parse(args); err != nil {
+		return
+	}
 
-	if c.addr == "" {
-		c.addr = ":8080"
-	}
-	if c.dsn == "" {
-		c.dsn = ":memory:"
-	}
+	var (
+		eg = errgroup.New(ctx)
+	)
 
 	db, err := sql.Open(c.dsn)
 	if err != nil {
 		return err
 	}
 	defer db.Close()
-	
+
 	s, err := server.New(c.addr, db)
 	if err != nil {
 		return err
@@ -94,18 +91,18 @@ func (c *serve) serve(_ *fisk.ParseContext) error {
 
 // migrate
 type migrate struct {
+	fs  *flag.FlagSet
 	dsn string
 }
 
-func (c *migrate) migrate(_ *fisk.ParseContext) error {
-	var (
-		ctx, cancel = signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
-	)
-	defer cancel()
-
-	if c.dsn == "" {
-		c.dsn = ":memory:"
+func (c *migrate) migrate(ctx context.Context, args []string) (err error) {
+	if err = c.fs.Parse(args); err != nil {
+		return
 	}
+
+	var (
+		eg = errgroup.New(ctx)
+	)
 
 	db, err := sql.Open(c.dsn)
 	if err != nil {
@@ -113,5 +110,9 @@ func (c *migrate) migrate(_ *fisk.ParseContext) error {
 	}
 	defer db.Close()
 
-	return sql.Up(ctx, db, room.FS)
+	eg.Go(func(ctx context.Context) error {
+		return room.Up(ctx, db)
+	})
+
+	return eg.Wait()
 }

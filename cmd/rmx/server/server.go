@@ -7,8 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi/v5"
-	rooms "github.com/rapidmidiex/rmx/internal/rehearsal/http"
+	service "github.com/rapidmidiex/rmx/internal/http"
 	sql "github.com/rapidmidiex/rmx/sqlite3"
 )
 
@@ -39,11 +38,7 @@ func (s *Server) Shutdown() error {
 
 // A New Server defines parameters for running an HTTP server.
 func New(addr string, db sql.DB) (*Server, error) {
-	mux := chi.NewMux()
-	mux.Handle("/", http.RedirectHandler("/rooms", http.StatusFound))
-	mux.Mount("/rooms", rooms.New(rooms.FS, db))
-	// todo - static
-	// todo - auth
+	mux := service.New(db)
 	s := &http.Server{Addr: addr, Handler: mux}
 	return &Server{s}, nil
 }
