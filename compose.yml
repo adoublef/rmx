@@ -7,7 +7,7 @@ services:
     build:
       context: .
       target: runtime
-    command: serve -d file:/data/sqlite/a.db
+    command: s -dsn file:/data/sqlite/rmx.db
     volumes:
       - rmx-sqlite:/data/sqlite
     privileged: true
@@ -22,7 +22,7 @@ services:
     build:
       context: .
       target: runtime
-    command: migrate -d file:/data/sqlite/a.db
+    command: m -dsn file:/data/sqlite/rmx.db
     volumes:
       - rmx-sqlite:/data/sqlite
     privileged: true
