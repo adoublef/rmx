@@ -13,7 +13,6 @@ require (
 )
 
 require (
-	github.com/choria-io/fisk v0.6.1
 	github.com/maragudk/migrate v0.4.3
 	github.com/matryer/is v1.4.1
 	github.com/mattn/go-sqlite3 v1.14.18
